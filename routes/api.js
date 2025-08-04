@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const serverless = require('serverless-http');
 const userService = require('../services/userService');
 const logger = require('../utils/logger');
 const config = require('../config/config');
@@ -44,7 +45,13 @@ router.get('/', (req, res) => {
                 'GET /api/users': 'Get all users',
                 'POST /api/register': 'Register a new user',
                 'GET /api/users/:referralCode': 'Get user by referral code'
-            }
+            },
+            sampleUsers: userService.getAllUsers().slice(0, 3).map(user => ({
+                name: user.name,
+                email: user.email,
+                referralCode: user.referralCode,
+                points: user.points
+            }))
         };
 
         res.json(apiInfo);
@@ -88,13 +95,6 @@ router.get('/users', (req, res) => {
 router.post('/register', (req, res) => {
     try {
         const { name, email, referralCode } = req.body;
-        
-        if (!name || !email) {
-            return res.status(400).json({
-                success: false,
-                error: 'Name and email are required'
-            });
-        }
         
         const result = userService.registerUser({ name, email, referralCode });
         
@@ -163,5 +163,7 @@ router.get('/users/:referralCode', (req, res) => {
         });
     }
 });
+
+
 
 module.exports = router; 
