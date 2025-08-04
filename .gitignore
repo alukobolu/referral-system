@@ -77,7 +77,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
@@ -195,4 +194,5 @@ dist/
 
 # Environment files
 .env*
+
 !.env.example 
