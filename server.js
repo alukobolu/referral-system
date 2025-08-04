@@ -25,7 +25,7 @@ const app = express();
  */
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com'] // Replace with your domain
+        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com', 'https://your-vercel-domain.vercel.app'] // Add your Vercel domain
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     optionsSuccessStatus: 200
@@ -47,9 +47,11 @@ app.use((req, res, next) => {
 });
 
 /**
- * Static file serving
+ * Static file serving (only for local development)
  */
-app.use(express.static(path.join(__dirname, 'public')));
+if (process.env.NODE_ENV !== 'production') {
+    app.use(express.static(path.join(__dirname, 'public')));
+}
 
 /**
  * API Routes
@@ -71,11 +73,13 @@ app.get('/health', (req, res) => {
 });
 
 /**
- * Root endpoint - serve frontend
+ * Root endpoint - serve frontend (only for local development)
  */
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+}
 
 /**
  * 404 handler for non-API routes
@@ -155,4 +159,6 @@ if (require.main === module) {
     startServer();
 }
 
+// Export for serverless deployment
 module.exports = { app, startServer };
+module.exports.handler = serverless(app);
