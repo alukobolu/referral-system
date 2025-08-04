@@ -13,3 +13,4 @@ app.use('/api', apiRoutes);
 app.use(errorHandler);
 
 module.exports.handler = serverless(app);
+    

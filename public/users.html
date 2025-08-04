@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Zynta Referral System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Users Management</h1>
+            <p>View and search registered users</p>
+        </div>
+
+        <div class="navigation">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="register.html" class="nav-link">Register</a>
+            <a href="users.html" class="nav-link">View Users</a>
+        </div>
+
+        <div class="main-content single-card">
+            <!-- Combined Users Management Card -->
+            <div class="card">
+                <h2>Users Management</h2>
+                
+                <!-- Users Display Section with Search in Header -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #495057; font-size: 1.2rem; margin: 0;">All Registered Users</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="text" id="searchReferralCode" placeholder="Search by referral code" style="padding: 8px 12px; border: 2px solid #e9ecef; border-radius: 6px; font-size: 0.9rem; width: 200px;">
+                            <button class="btn" onclick="searchUser()" style="padding: 8px 16px; font-size: 0.9rem;">Search</button>
+                            <button class="btn btn-secondary" onclick="clearSearch()" style="padding: 8px 16px; font-size: 0.9rem;">Clear</button>
+                        </div>
+                    </div>
+                    <div id="searchMessage"></div>
+                    <!-- <button class="btn" onclick="loadUsers()">Refresh Users</button> -->
+                    <div id="usersContainer">
+                        <div class="loading">Loading users...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
