@@ -21,6 +21,12 @@ const LOG_LEVELS = {
 class Logger {
     constructor() {
         this.logLevel = config.server.environment === 'production' ? LOG_LEVELS.INFO : LOG_LEVELS.DEBUG;
+        
+        // Log initialization
+        this.info('Logger initialized', {
+            environment: config.server.environment,
+            logLevel: this.logLevel
+        });
     }
 
     /**
@@ -111,19 +117,25 @@ class Logger {
      * @param {number} responseTime - Response time in milliseconds
      */
     logApiRequest(req, res, responseTime) {
-        const logData = {
-            method: req.method,
-            url: req.url,
-            statusCode: res.statusCode,
-            responseTime: `${responseTime}ms`,
-            userAgent: req.get('User-Agent'),
-            ip: req.ip || req.connection.remoteAddress
-        };
+        try {
+            const logData = {
+                method: req.method,
+                url: req.url,
+                statusCode: res.statusCode,
+                responseTime: `${responseTime}ms`,
+                userAgent: req.get('User-Agent') || 'Unknown',
+                ip: req.ip || req.connection?.remoteAddress || 'Unknown',
+                environment: config.server.environment
+            };
 
-        if (res.statusCode >= 400) {
-            this.warn('API Request', logData);
-        } else {
-            this.info('API Request', logData);
+            if (res.statusCode >= 400) {
+                this.warn('API Request', logData);
+            } else {
+                this.info('API Request', logData);
+            }
+        } catch (error) {
+            // Fallback logging if there's an error in the logging itself
+            console.error('Logging error:', error);
         }
     }
 }

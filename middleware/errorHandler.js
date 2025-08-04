@@ -59,22 +59,14 @@ const errorHandler = (err, req, res, next) => {
         error = new ApiError(message, 400);
     }
 
-    // Determine if it's an API route
-    const isApiRoute = req.path.startsWith('/api/');
-
-    if (isApiRoute) {
-        // Return JSON error for API routes
-        res.status(error.statusCode || 500).json({
-            success: false,
-            error: error.message || 'Internal server error',
-            ...(process.env.NODE_ENV === 'development' && {
-                stack: error.stack
-            })
-        });
-    } else {
-        // For non-API routes, serve the frontend
-        res.status(404).sendFile('index.html', { root: 'public' });
-    }
+    // Always return JSON response for serverless environment
+    res.status(error.statusCode || 500).json({
+        success: false,
+        error: error.message || 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && {
+            stack: error.stack
+        })
+    });
 };
 
 /**

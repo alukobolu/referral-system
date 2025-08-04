@@ -1,123 +1,136 @@
 const express = require('express');
 const serverless = require('serverless-http');
+const cors = require('cors');
+const path = require('path');
+
+// Import configuration and utilities
+const config = require('../config/config');
+const logger = require('../utils/logger');
+const { notFound, errorHandler } = require('../middleware/errorHandler');
+
+// Import routes
+const apiRoutes = require('../routes/api');
 
 const app = express();
 
-// Basic middleware
-app.use(express.json());
-
-// Test endpoint
-app.get('/test', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Test endpoint working',
-        timestamp: new Date().toISOString()
-    });
+// Log environment information for debugging
+logger.info('API Server starting', {
+    nodeEnv: process.env.NODE_ENV,
+    port: process.env.PORT,
+    host: process.env.HOST,
+    environment: config.server.environment
 });
 
-// Health check
-app.get('/health', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Server is healthy',
-        timestamp: new Date().toISOString()
-    });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Referral System API',
-        endpoints: {
-            test: '/test',
-            health: '/health',
-            api: '/api'
-        }
-    });
-});
-
-// Simple API routes
-app.get('/api', (req, res) => {
-    res.json({
-        success: true,
-        message: 'API is working',
-        endpoints: {
-            users: '/api/users',
-            register: '/api/register'
-        }
-    });
-});
-
-app.get('/api/users', (req, res) => {
-    res.json({
-        success: true,
-        count: 3,
-        users: [
-            {
-                id: 1,
-                name: "Alice Johnson",
-                email: "alice@example.com",
-                referralCode: "ABC123",
-                points: 0
-            },
-            {
-                id: 2,
-                name: "Bob Smith",
-                email: "bob@example.com",
-                referralCode: "DEF456",
-                points: 20
-            },
-            {
-                id: 3,
-                name: "Carol Davis",
-                email: "carol@example.com",
-                referralCode: "GHI789",
-                points: 50
+/**
+ * Security and CORS configuration
+ */
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'https://referal-app-a2aab6c9cdb9.herokuapp.com',
+            'https://referral-system-alpha.vercel.app',
+            // Add your Vercel frontend URL here
+            process.env.FRONTEND_URL
+        ].filter(Boolean); // Remove undefined values
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            // In development, allow all origins
+            if (process.env.NODE_ENV === 'development') {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
             }
-        ]
-    });
+        }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
+/**
+ * Middleware setup
+ */
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
 });
 
-app.post('/api/register', (req, res) => {
-    const { name, email } = req.body;
-    
-    if (!name || !email) {
-        return res.status(400).json({
+/**
+ * API Routes
+ */
+app.use('/api', apiRoutes);
+
+/**
+ * Health check endpoint
+ */
+app.get('/health', (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            message: 'Server is healthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            environment: config.server.environment,
+            version: config.app.version,
+            nodeEnv: process.env.NODE_ENV
+        });
+    } catch (error) {
+        logger.error('Health check error', error);
+        res.status(500).json({
             success: false,
-            error: 'Name and email are required'
+            error: 'Health check failed'
         });
     }
-    
-    res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        user: {
-            id: 4,
-            name,
-            email,
-            referralCode: 'XYZ789',
-            points: 0
-        }
-    });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Route not found'
-    });
+/**
+ * Root endpoint for API
+ */
+app.get('/', (req, res) => {
+    try {
+        res.json({
+            success: true,
+            message: 'Referral System API',
+            version: config.app.version,
+            environment: config.server.environment,
+            endpoints: {
+                health: '/health',
+                api: '/api',
+                users: '/api/users',
+                register: '/api/register'
+            }
+        });
+    } catch (error) {
+        logger.error('Root endpoint error', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-    });
-});
+/**
+ * 404 handler for non-API routes
+ */
+app.use(notFound);
+
+/**
+ * Global error handler
+ */
+app.use(errorHandler);
 
 // Export for serverless deployment
 module.exports.handler = serverless(app);
