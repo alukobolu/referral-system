@@ -20,13 +20,10 @@
       "dest": "/api/index.js"
     },
     {
-<<<<<<< HEAD
       "src": "/",
       "dest": "/api/index.js"
     },
     {
-=======
->>>>>>> parent of fc90bc5 (push)
       "src": "/(.*)",
       "dest": "/public/$1"
     }

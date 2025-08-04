@@ -65,6 +65,53 @@ router.get('/', (req, res) => {
 });
 
 /**
+ * @route GET /api/users/:referralCode
+ * @desc Get user by referral code
+ * @access Public
+ */
+router.get('/users/:referralCode', (req, res) => {
+    try {
+        const { referralCode } = req.params;
+        
+        if (!referralCode || typeof referralCode !== 'string') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid referral code format'
+            });
+        }
+        
+        const user = userService.findUserByReferralCode(referralCode);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+        
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                referralCode: user.referralCode,
+                points: user.points,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            }
+        });
+        
+    } catch (error) {
+        logger.error('Error fetching user by referral code', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+});
+
+/**
  * @route GET /api/users
  * @desc Get all users
  * @access Public
@@ -116,54 +163,5 @@ router.post('/register', (req, res) => {
         });
     }
 });
-
-/**
- * @route GET /api/users/:referralCode
- * @desc Get user by referral code
- * @access Public
- */
-router.get('/users/:referralCode', (req, res) => {
-    try {
-        const { referralCode } = req.params;
-        
-        if (!referralCode || typeof referralCode !== 'string') {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid referral code format'
-            });
-        }
-        
-        const user = userService.findUserByReferralCode(referralCode);
-        
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
-        }
-        
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                referralCode: user.referralCode,
-                points: user.points,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt
-            }
-        });
-        
-    } catch (error) {
-        logger.error('Error fetching user by referral code', error);
-        res.status(500).json({
-            success: false,
-            error: 'Internal server error'
-        });
-    }
-});
-
-
 
 module.exports = router; 

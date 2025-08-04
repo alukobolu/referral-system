@@ -25,7 +25,7 @@ const app = express();
  */
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com', 'https://your-vercel-domain.vercel.app'] // Add your Vercel domain
+        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com', 'https://referral-system-alpha.vercel.app']
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     optionsSuccessStatus: 200
