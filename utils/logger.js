@@ -46,6 +46,7 @@ class Logger {
                 };
             }
 
+            console.error('❌ ERROR:', logData);
         }
     }
 
@@ -63,6 +64,7 @@ class Logger {
                 ...context
             };
 
+            console.warn('⚠️  WARN:', logData);
         }
     }
 

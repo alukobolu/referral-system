@@ -1,90 +1,123 @@
 const express = require('express');
 const serverless = require('serverless-http');
-const cors = require('cors');
-const path = require('path');
-
-// Import configuration and utilities
-const config = require('../config/config');
-const logger = require('../utils/logger');
-const { notFound, errorHandler } = require('../middleware/errorHandler');
-
-// Import routes
-const apiRoutes = require('../routes/api');
 
 const app = express();
 
-/**
- * Security and CORS configuration
- */
-const corsOptions = {
-    origin: process.env.NODE_ENV === 'production' 
-        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com', 'https://your-vercel-domain.vercel.app']
-        : ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
+// Basic middleware
+app.use(express.json());
 
-/**
- * Middleware setup
- */
-app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Security headers
-app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    next();
-});
-
-/**
- * API Routes
- */
-app.use('/api', apiRoutes);
-
-/**
- * Health check endpoint
- */
-app.get('/health', (req, res) => {
-    res.status(200).json({
+// Test endpoint
+app.get('/test', (req, res) => {
+    res.json({
         success: true,
-        message: 'Server is healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: config.server.environment,
-        version: config.app.version
+        message: 'Test endpoint working',
+        timestamp: new Date().toISOString()
     });
 });
 
-/**
- * Root endpoint for API
- */
+// Health check
+app.get('/health', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Server is healthy',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Root endpoint
 app.get('/', (req, res) => {
     res.json({
         success: true,
         message: 'Referral System API',
-        version: config.app.version,
-        environment: config.server.environment,
         endpoints: {
+            test: '/test',
             health: '/health',
-            api: '/api',
+            api: '/api'
+        }
+    });
+});
+
+// Simple API routes
+app.get('/api', (req, res) => {
+    res.json({
+        success: true,
+        message: 'API is working',
+        endpoints: {
             users: '/api/users',
             register: '/api/register'
         }
     });
 });
 
-/**
- * 404 handler for non-API routes
- */
-app.use(notFound);
+app.get('/api/users', (req, res) => {
+    res.json({
+        success: true,
+        count: 3,
+        users: [
+            {
+                id: 1,
+                name: "Alice Johnson",
+                email: "alice@example.com",
+                referralCode: "ABC123",
+                points: 0
+            },
+            {
+                id: 2,
+                name: "Bob Smith",
+                email: "bob@example.com",
+                referralCode: "DEF456",
+                points: 20
+            },
+            {
+                id: 3,
+                name: "Carol Davis",
+                email: "carol@example.com",
+                referralCode: "GHI789",
+                points: 50
+            }
+        ]
+    });
+});
 
-/**
- * Global error handler
- */
-app.use(errorHandler);
+app.post('/api/register', (req, res) => {
+    const { name, email } = req.body;
+    
+    if (!name || !email) {
+        return res.status(400).json({
+            success: false,
+            error: 'Name and email are required'
+        });
+    }
+    
+    res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        user: {
+            id: 4,
+            name,
+            email,
+            referralCode: 'XYZ789',
+            points: 0
+        }
+    });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Route not found'
+    });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+    });
+});
 
 // Export for serverless deployment
 module.exports.handler = serverless(app);
