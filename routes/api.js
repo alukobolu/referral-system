@@ -4,6 +4,7 @@
  */
 
 const express = require('express');
+const serverless = require('serverless-http');
 const userService = require('../services/userService');
 const logger = require('../utils/logger');
 const config = require('../config/config');
