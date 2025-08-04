@@ -25,7 +25,7 @@ const app = express();
  */
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://yourdomain.com'] // Replace with your domain
+        ? ['https://referal-app-a2aab6c9cdb9.herokuapp.com'] // Replace with your domain
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     optionsSuccessStatus: 200
