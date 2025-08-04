@@ -87,5 +87,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Export for serverless deployment
-module.exports.handler = serverless(app);
+module.exports = serverless(app);
     
